@@ -38,11 +38,11 @@ app.get("/user", async (req, res) => {
   }
 });
 
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
   const data = req.body
   try {
-    const user = await User.findByIdAndUpdate(userId, data )
+    const user = await User.findByIdAndUpdate(userId, data, {runValidators: true} )
     res.send("User updated successfully...");
   } catch (error) {
     res.status(500).send("Error updating user: " + error.message);

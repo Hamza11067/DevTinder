@@ -61,6 +61,15 @@ const userSchema = new Schema({
       message: (props) => `${props.value} is not a valid URL!`,
     },
   },
+  skills: {
+    type: [String],
+    validate: {
+      validator: function (v) {
+        return v.length <= 10;
+      },
+      message: "You can only have up to 10 skills.",
+    },
+  }
 },
 {
   timestamps: true,

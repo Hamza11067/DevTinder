@@ -1,0 +1,2 @@
+ - validations are necessary for keeping our data sanitized
+ - get userId from req.params and accept it in /:userId after the route
