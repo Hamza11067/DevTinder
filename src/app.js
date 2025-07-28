@@ -2,19 +2,34 @@ const express = require("express");
 const connectDB = require("./config/databases");
 const app = express();
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
-  console.log('Request body:', req.body);
-
-
   try {
+    // Validate incoming signup data
+    validateSignUpData(req);
+
+    const { password } = req.body;
+    const saltRounds = 10;
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create a new user with the hashed password
+    const user = new User({
+      ...req.body,
+      password: hashedPassword,
+    });
+
+    // Save user to the database
     await user.save();
+
     res.send("User added successfully...");
   } catch (err) {
-    res.status(400).send("Error in saving user : " + err.message);
+    res.status(400).send("Error in saving user: " + err.message);
   }
 });
 
@@ -42,13 +57,14 @@ app.get("/user", async (req, res) => {
 
 app.patch("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
-  const data = req.body
+  const data = req.body;
   try {
-    const user = await User.findByIdAndUpdate(userId, data, {runValidators: true} )
+    const user = await User.findByIdAndUpdate(userId, data, {
+      runValidators: true,
+    });
     res.send("User updated successfully...");
   } catch (error) {
     res.status(500).send("Error updating user: " + error.message);
-    
   }
 });
 
@@ -61,7 +77,7 @@ app.delete("/user", async (req, res) => {
       return res.status(404).send("No user found to delete");
     }
     res.send("User deleted successfully");
-  } catch (error) { 
+  } catch (error) {
     res.status(500).send("Error deleting user: " + error.message);
   }
 });
