@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const validator = require("validator");
 
 const userSchema = new Schema({
   firstName: {
@@ -21,17 +22,21 @@ const userSchema = new Schema({
     unique: true,
     trim: true,
     lowercase: true,
-    validate: {
-      validator: function (v) {
-        return /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(v);
-      },
-      message: (props) => `${props.value} is not a valid email!`,
-    },
+    validate(){
+      if(!validator.isEmail(this.email)) {
+        throw new Error("Invalid email format");
+      }
+    }
   },
   password: {
     type: String,
     required: true,
     minlength: 8,
+    validate(){
+      if(!validator.isStrongPassword(this.password)){
+        throw new Error("Password must be strong");
+      }
+    }
   },
   age: {
     type: Number,
@@ -39,11 +44,6 @@ const userSchema = new Schema({
   },
   gender: {
     type: String,
-    validate: {
-      validator: function (v) {
-        return /^(male|female|other)$/i.test(v);
-      },
-    },
   },
   about: {
     type: String,
@@ -54,12 +54,11 @@ const userSchema = new Schema({
   photoUrl: {
     type: String,
     default: "https://med.gov.bz/wp-content/uploads/2020/08/dummy-profile-pic.jpg",
-    validate: {
-      validator: function (v) {
-        return /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif))$/.test(v);
-      },
-      message: (props) => `${props.value} is not a valid URL!`,
-    },
+    validate() {
+      if (!validator.isURL(this.photoUrl)) {
+        throw new Error("Invalid URL format for photo");
+      }
+    }
   },
   skills: {
     type: [String],

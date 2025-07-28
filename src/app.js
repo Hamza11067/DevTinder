@@ -7,6 +7,8 @@ app.use(express.json());
 
 app.post("/signup", async (req, res) => {
   const user = new User(req.body);
+  console.log('Request body:', req.body);
+
 
   try {
     await user.save();
