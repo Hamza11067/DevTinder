@@ -33,6 +33,26 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+    // Compare the provided password with the hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).send("Invalid credentials");
+    }
+    res.send("Login successful");
+  } catch (error) {
+    return res.status(500).send("Error logging in: " + error.message);
+  }
+});
+
 app.get("/users", async (req, res) => {
   try {
     const users = await User.find();
