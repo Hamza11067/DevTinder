@@ -4,8 +4,11 @@ const app = express();
 const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   try {
@@ -47,6 +50,9 @@ app.post("/login", async (req, res) => {
     if (!isMatch) {
       return res.status(401).send("Invalid credentials");
     }
+    const token = await jwt.sign({_id: user._id}, "your_jwt_secret");
+    res.cookie("authToken", token, { httpOnly: true });
+
     res.send("Login successful");
   } catch (error) {
     return res.status(500).send("Error logging in: " + error.message);
@@ -72,6 +78,21 @@ app.get("/user", async (req, res) => {
     res.send(user);
   } catch (error) {
     res.status(500).send("Error fetching user: " + error.message);
+  }
+});
+
+app.get("/profile", async (req, res) => {
+  try {
+    const token = req.cookies.authToken;
+
+    const decodedMessage = await jwt.verify(token, "your_jwt_secret");
+    const {_id} = decodedMessage;
+
+    const user = await User.findById(_id)
+
+    res.send("Profile accessed successfully" +  user);
+  } catch (error) {
+    res.status(500).send("Error fetching profile: " + error.message);
   }
 });
 
