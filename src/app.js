@@ -84,11 +84,18 @@ app.get("/user", async (req, res) => {
 app.get("/profile", async (req, res) => {
   try {
     const token = req.cookies.authToken;
-
+    // Check if token is provided
+    if(!token){
+      throw new Error("No token provided");
+    }
+    // Verify the token
     const decodedMessage = await jwt.verify(token, "your_jwt_secret");
     const {_id} = decodedMessage;
 
     const user = await User.findById(_id)
+    if(!user){
+      throw new Error("Invalid Credentials")
+    }
 
     res.send("Profile accessed successfully" +  user);
   } catch (error) {
