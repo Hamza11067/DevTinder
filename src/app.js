@@ -1,14 +1,16 @@
 const express = require("express");
 const connectDB = require("./config/databases");
-const app = express();
+const cookieParser = require("cookie-parser");
 const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
-const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+
+const { userAuth } = require("./middlewares/auth");
 
 app.post("/signup", async (req, res) => {
   try {
@@ -50,8 +52,8 @@ app.post("/login", async (req, res) => {
     if (!isMatch) {
       return res.status(401).send("Invalid credentials");
     }
-    const token = await jwt.sign({_id: user._id}, "your_jwt_secret");
-    res.cookie("authToken", token, { httpOnly: true });
+    const token = await jwt.sign({_id: user._id}, "DEV@Tinder$123");
+    res.cookie("token", token, { httpOnly: true });
 
     res.send("Login successful");
   } catch (error) {
@@ -81,27 +83,20 @@ app.get("/user", async (req, res) => {
   }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    const token = req.cookies.authToken;
-    // Check if token is provided
-    if(!token){
-      throw new Error("No token provided");
-    }
-    // Verify the token
-    const decodedMessage = await jwt.verify(token, "your_jwt_secret");
-    const {_id} = decodedMessage;
+    const user = req.user;
+    res.json({
+      message: "Profile accessed successfully",
+      profile: user,
+    });
 
-    const user = await User.findById(_id)
-    if(!user){
-      throw new Error("Invalid Credentials")
-    }
-
-    res.send("Profile accessed successfully" +  user);
   } catch (error) {
-    res.status(500).send("Error fetching profile: " + error.message);
+    console.error("Error fetching profile:", error); // Log the error for debugging
+    res.status(500).json({ message: "Error fetching profile", error: error.message });
   }
 });
+
 
 app.patch("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
