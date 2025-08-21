@@ -52,7 +52,7 @@ app.post("/login", async (req, res) => {
     if (!isMatch) {
       return res.status(401).send("Invalid credentials");
     }
-    const token = await jwt.sign({_id: user._id}, "DEV@Tinder$123");
+    const token = await jwt.sign({_id: user._id}, "DEV@Tinder$123", {expiresIn: "1d"});
     res.cookie("token", token, { httpOnly: true });
 
     res.send("Login successful");
@@ -86,17 +86,18 @@ app.get("/user", async (req, res) => {
 app.get("/profile", userAuth, async (req, res) => {
   try {
     const user = req.user;
-    res.json({
-      message: "Profile accessed successfully",
-      profile: user,
-    });
+    res.send(user);
 
   } catch (error) {
-    console.error("Error fetching profile:", error); // Log the error for debugging
+    console.error("Error fetching profile:", error);
     res.status(500).json({ message: "Error fetching profile", error: error.message });
   }
 });
 
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  const user = req.user;
+  res.send(`Connection request sent by ${user.firstName}`);
+});
 
 app.patch("/user/:userId", async (req, res) => {
   const userId = req.params.userId;

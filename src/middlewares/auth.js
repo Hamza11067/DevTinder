@@ -5,7 +5,6 @@ const userAuth = async (req, res, next) => {
   // Read the token from cookies
   try {
       const {token} = req.cookies;
-      console.log("Token from cookies:", token);
       if (!token) {
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
@@ -16,18 +15,17 @@ const userAuth = async (req, res, next) => {
 
     // Find the user by ID
     const user = await User.findById(_id);
-    console.log(user)
     if (!user) {
       return res.status(404).json({ message: "Unauthorized: User not found" });
     }
 
-    // Attach the user object to the request
     req.user = user;
     next();
   } catch (error) {
-    // Handle invalid tokens or other errors
-    return res.status(401).json({ message: "Unauthorized: Invalid token" });
+    return res.status(401).send("Unauthorized: " + error.message);
   }
 };
 
-module.exports = { userAuth };
+module.exports = { 
+  userAuth,
+};
