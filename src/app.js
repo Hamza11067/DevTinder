@@ -48,11 +48,11 @@ app.post("/login", async (req, res) => {
       throw new Error("Invalid credentials");
     }
     // Compare the provided password with the hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await user.validatePassword(password);
     if (!isMatch) {
       return res.status(401).send("Invalid credentials");
     }
-    const token = await jwt.sign({_id: user._id}, "DEV@Tinder$123", {expiresIn: "1d"});
+    const token = await user.getJWT();
     res.cookie("token", token, { httpOnly: true });
 
     res.send("Login successful");
