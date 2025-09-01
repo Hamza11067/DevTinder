@@ -22,6 +22,19 @@ const connectionRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index to ensure uniqueness of connection requests between two users
+connectionRequestSchema.index({ fromeUserId: 1, toUserId: 1 });
+
+// Pre-save hook to prevent self-connection requests
+
+connectionRequestSchema.pre("save", function (next) {
+  const connectionRequest = this;
+  if(connectionRequest.fromeUserId.equals(connectionRequest.toUserId)) {
+    throw new Error("You cannot send connection request to yourself");
+  } 
+  next();
+});
+
 const ConnectionRequestModel = new mongoose.model(
   "ConnectionRequest",
   connectionRequestSchema

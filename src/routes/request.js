@@ -3,6 +3,7 @@ const requestRouter = express.Router();
 
 const {userAuth} = require('../middlewares/auth');
 const ConnectionRequestModel = require('../models/connectionRequest');
+const User = require('../models/user');
 
 
 requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
@@ -16,9 +17,14 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
       return res.status(400).json({ message: "Invalid status value " + status });
     }
 
+    const toUser = await User.findById(toUserId);
+    if (!toUser) {
+      return res.status(404).json({ message: "ToUser not found" });
+    }
+
     const existingConnectionRequest = await ConnectionRequestModel.findOne({
       $or: [
-        { fromeUserId, toUserId },
+        { fromeUserId: fromeUserId, toUserId: toUserId },
         { fromeUserId: toUserId, toUserId: fromeUserId }
       ]
     });
@@ -41,7 +47,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
     })
 
   } catch (error) {
-    res.send("Error" + error.message);
+    res.send("Error " + error.message);
   }
 });
 
