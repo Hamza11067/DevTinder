@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 
 const connectionRequestSchema = new mongoose.Schema(
   {
-    fromeUserId: {
+    fromUserId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
+      ref: "User",
     },
     toUserId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -23,13 +24,13 @@ const connectionRequestSchema = new mongoose.Schema(
 );
 
 // Compound index to ensure uniqueness of connection requests between two users
-connectionRequestSchema.index({ fromeUserId: 1, toUserId: 1 });
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 
 // Pre-save hook to prevent self-connection requests
 
 connectionRequestSchema.pre("save", function (next) {
   const connectionRequest = this;
-  if(connectionRequest.fromeUserId.equals(connectionRequest.toUserId)) {
+  if(connectionRequest.fromUserId.equals(connectionRequest.toUserId)) {
     throw new Error("You cannot send connection request to yourself");
   } 
   next();
