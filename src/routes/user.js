@@ -57,4 +57,33 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     res.status(400).send("Error " + error);
   }
 });
+
+userRouter.get("/feed", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+
+    const connectionRequests = await ConnectionRequestModel.find({
+      $or: [
+        { fromUserId: loggedInUser._id},
+        { toUserId: loggedInUser._id}
+      ],
+    }).select("fromUserId toUserId");
+
+    
+    const hiddenUsersFromFeed = new Set();
+    connectionRequests.forEach((request) => {
+      hiddenUsersFromFeed.add(request.fromUserId.toString());
+      hiddenUsersFromFeed.add(request.toUserId.toString());
+    });
+
+    hiddenUsersFromFeed.add(loggedInUser._id.toString());
+
+    console.log(hiddenUsersFromFeed);
+
+    res.send("Feed endpoint is under construction");
+
+  } catch (error) {
+    res.status(400).send("Error " + error);
+  }
+});
 module.exports = userRouter;
